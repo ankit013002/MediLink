@@ -9,6 +9,9 @@ module.exports = {
     // add any other folders with Tailwind classes
   ],
   theme: {
+    backgroundImage: {
+      "home-img": "url('/images/bg-home.png')",
+    },
     extend: {
       borderRadius: {
         lg: "var(--radius)",
