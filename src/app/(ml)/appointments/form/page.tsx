@@ -2,6 +2,8 @@ import { getPatient } from "@/lib/queries/getPatient";
 import { getAppointment } from "@/lib/queries/getAppointment";
 import { BackButton } from "@/components/BackButton";
 import * as Sentry from "@sentry/nextjs";
+import AppointmentForm from "./AppointmentForm";
+import { Console } from "console";
 
 export default async function AppointmentFormPage({
   searchParams,
@@ -45,8 +47,10 @@ export default async function AppointmentFormPage({
           </>
         );
       }
-
-      console.log(patient);
+      {
+        console.log("here and patient: ", patient);
+      }
+      return <AppointmentForm patient={patient} />;
     }
 
     if (appointmentId) {
@@ -64,9 +68,7 @@ export default async function AppointmentFormPage({
       }
 
       const patient = await getPatient(appointment.patientId);
-
-      console.log("Appointment: ", appointment);
-      console.log("Patient: ", patient);
+      return <AppointmentForm patient={patient} appointment={appointment} />;
     }
   } catch (error) {
     if (error instanceof Error) {

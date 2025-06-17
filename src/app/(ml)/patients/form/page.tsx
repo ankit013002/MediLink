@@ -2,6 +2,7 @@ import React from "react";
 import { getPatient } from "@/lib/queries/getPatient";
 import { BackButton } from "@/components/BackButton";
 import * as Sentry from "@sentry/nextjs";
+import PatientForm from "./PatientForm";
 
 export default async function partientFormPage({
   searchParams,
@@ -23,9 +24,9 @@ export default async function partientFormPage({
           </>
         );
       }
-      console.log(patient);
+      return <PatientForm patient={patient} />;
     } else {
-      return <div>{/* Customer Form */}</div>;
+      return <PatientForm />;
     }
   } catch (error) {
     if (error instanceof Error) {
