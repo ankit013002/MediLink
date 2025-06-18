@@ -10,6 +10,8 @@ import {
   type insertPatientSchemaType,
   type selectPatientSchemaType,
 } from "@/zod-schemas/patient";
+import { InputWithLabel } from "@/components/inputs/InputWithLabel";
+import { TextAreaWithLabel } from "@/components/inputs/TextAreaWithLabel";
 
 type Props = {
   patient?: selectPatientSchemaType;
@@ -49,10 +51,71 @@ export default function PatientForm({ patient }: Props) {
       </div>
       <Form {...form}>
         <form
-          className="flex flex-col sm:flex-row gap-4 sm:gap-8"
+          className="flex flex-col md:flex-row gap-4 md:gap-8"
           onSubmit={form.handleSubmit(submitForm)}
         >
-          <p>{JSON.stringify(form.getValues())}</p>
+          <div className="flex flex-col gap-4 w-full max-w-xs">
+            <InputWithLabel<insertPatientSchemaType>
+              fieldTitle="First Name"
+              nameInSchema="firstName"
+            />
+            <InputWithLabel<insertPatientSchemaType>
+              fieldTitle="Last Name"
+              nameInSchema="lastName"
+            />
+            <InputWithLabel<insertPatientSchemaType>
+              fieldTitle="Address 1"
+              nameInSchema="address1"
+            />
+            <InputWithLabel<insertPatientSchemaType>
+              fieldTitle="Address 2"
+              nameInSchema="address2"
+            />
+            <InputWithLabel<insertPatientSchemaType>
+              fieldTitle="City"
+              nameInSchema="city"
+            />
+          </div>
+
+          <div className="flex flex-col gap-4 w-full max-w-xs">
+            <InputWithLabel<insertPatientSchemaType>
+              fieldTitle="Zip Code"
+              nameInSchema="zip"
+            />
+            <InputWithLabel<insertPatientSchemaType>
+              fieldTitle="Email"
+              nameInSchema="email"
+            />
+            <InputWithLabel<insertPatientSchemaType>
+              fieldTitle="Phone"
+              nameInSchema="phone"
+            />
+
+            <TextAreaWithLabel<insertPatientSchemaType>
+              fieldTitle="Notes"
+              nameInSchema="phone"
+              className="h-40"
+            />
+
+            <div className="flex gap-2">
+              <Button
+                type="submit"
+                className="w-3/4"
+                variant="default"
+                title="Save"
+              >
+                Save
+              </Button>
+              <Button
+                onClick={() => form.reset(defaultValues)}
+                type="button"
+                variant="destructive"
+                title="Reset"
+              >
+                Reset
+              </Button>
+            </div>
+          </div>
         </form>
       </Form>
     </div>
