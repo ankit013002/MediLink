@@ -8,6 +8,10 @@ import {
 } from "@/zod-schemas/appointments";
 import { selectPatientSchemaType } from "@/zod-schemas/patient";
 import { useForm } from "react-hook-form";
+import { InputWithLabel } from "@/components/inputs/InputWithLabel";
+import { TextAreaWithLabel } from "@/components/inputs/TextAreaWithLabel";
+import { Button } from "@/components/ui/button";
+import { CheckboxWithLabel } from "@/components/inputs/CheckboxWithLabel";
 
 type Props = {
   patient: selectPatientSchemaType;
@@ -15,7 +19,7 @@ type Props = {
 };
 
 export default function AppointmentForm({ patient, appointment }: Props) {
-  const defaultValue: insertAppointmentSchemaType = {
+  const defaultValues: insertAppointmentSchemaType = {
     id: appointment?.id ?? "(New)",
     patientId: appointment?.patientId ?? patient.id,
     title: appointment?.title ?? "",
@@ -27,7 +31,7 @@ export default function AppointmentForm({ patient, appointment }: Props) {
   const form = useForm<insertAppointmentSchemaType>({
     mode: "onBlur",
     resolver: zodResolver(insertAppointmentSchema),
-    defaultValues: defaultValue,
+    defaultValues: defaultValues,
   });
 
   async function submitForm(data: insertAppointmentSchemaType) {
@@ -47,7 +51,66 @@ export default function AppointmentForm({ patient, appointment }: Props) {
           className="flex flex-col sm:flex-row gap-4 sm:gap-8"
           onSubmit={form.handleSubmit(submitForm)}
         >
-          <p>{JSON.stringify(form.getValues())}</p>
+          <div className="flex flex-col gap-4 w-full max-w-xs">
+            <InputWithLabel<insertAppointmentSchemaType>
+              fieldTitle="Title"
+              nameInSchema="title"
+            />
+            <InputWithLabel<insertAppointmentSchemaType>
+              fieldTitle="Physician"
+              nameInSchema="physician"
+              readOnly={true}
+            />
+
+            <CheckboxWithLabel<insertAppointmentSchemaType>
+              fieldTitle="Completed"
+              nameInSchema="completed"
+              message="Yes"
+            />
+
+            <div className="mt-4 space-y-2">
+              <h3 className="text-lg">Patient Info</h3>
+              <hr className="w-4/5" />
+              <p>
+                {patient.firstName} {patient.lastName}
+              </p>
+              <p>{patient.address1}</p>
+              {patient.address2 ? <p>{patient.address2}</p> : null}
+              <p>
+                {patient.city}, {patient.state} {patient.zip}
+              </p>
+              <hr className="w-4/5" />
+              <p>Email: {patient.email}</p>
+              <p>Phone: {patient.phone}</p>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-4 w-full max-x-xs">
+            <TextAreaWithLabel<insertAppointmentSchemaType>
+              fieldTitle="Reason for Visit"
+              nameInSchema="description"
+              className="h-96"
+            />
+
+            <div className="flex gap-2">
+              <Button
+                type="submit"
+                className="w-3/4"
+                variant="default"
+                title="Save"
+              >
+                Save
+              </Button>
+              <Button
+                onClick={() => form.reset(defaultValues)}
+                type="button"
+                variant="destructive"
+                title="Reset"
+              >
+                Reset
+              </Button>
+            </div>
+          </div>
         </form>
       </Form>
     </div>

@@ -12,6 +12,8 @@ import {
 } from "@/zod-schemas/patient";
 import { InputWithLabel } from "@/components/inputs/InputWithLabel";
 import { TextAreaWithLabel } from "@/components/inputs/TextAreaWithLabel";
+import { SelectWithLabel } from "@/components/inputs/SelectWithLabel";
+import { StatesArray } from "@/constants/StatesArray";
 
 type Props = {
   patient?: selectPatientSchemaType;
@@ -75,6 +77,12 @@ export default function PatientForm({ patient }: Props) {
               fieldTitle="City"
               nameInSchema="city"
             />
+
+            <SelectWithLabel<insertPatientSchemaType>
+              fieldTitle="State"
+              nameInSchema="state"
+              data={StatesArray}
+            />
           </div>
 
           <div className="flex flex-col gap-4 w-full max-w-xs">
@@ -93,7 +101,7 @@ export default function PatientForm({ patient }: Props) {
 
             <TextAreaWithLabel<insertPatientSchemaType>
               fieldTitle="Notes"
-              nameInSchema="phone"
+              nameInSchema="notes"
               className="h-40"
             />
 
