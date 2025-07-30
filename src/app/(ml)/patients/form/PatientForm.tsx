@@ -14,12 +14,23 @@ import { InputWithLabel } from "@/components/inputs/InputWithLabel";
 import { TextAreaWithLabel } from "@/components/inputs/TextAreaWithLabel";
 import { SelectWithLabel } from "@/components/inputs/SelectWithLabel";
 import { StatesArray } from "@/constants/StatesArray";
+import { CheckboxWithLabel } from "@/components/inputs/CheckboxWithLabel";
+import { generateMetadata } from "./page";
+import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 
 type Props = {
   patient?: selectPatientSchemaType;
 };
 
 export default function PatientForm({ patient }: Props) {
+  const { getPermission, isLoading } = useKindeBrowserClient();
+  const isAdmin = !isLoading && getPermission("admin")?.isGranted;
+
+  // const permObj = getPermissions();
+  // To get different permissions that user has. Just a way to get multiple
+  // const isAuthorized =
+  //   !isLoading && permObj.permissions.some((perm) => perm === "admin" || perm === "physician");
+
   const defaultValues: insertPatientSchemaType = {
     id: patient?.id ?? 0,
     firstName: patient?.firstName ?? "",
@@ -32,6 +43,7 @@ export default function PatientForm({ patient }: Props) {
     phone: patient?.phone ?? "",
     email: patient?.email ?? "",
     notes: patient?.notes ?? "",
+    active: patient?.active ?? true,
   };
 
   const form = useForm<insertPatientSchemaType>({
@@ -48,7 +60,8 @@ export default function PatientForm({ patient }: Props) {
     <div className="flex flex-col gap-1 sm:px-8">
       <div>
         <h2 className="text-2xl font-bold">
-          {patient?.id ? "Edit" : "New"} Customer Form
+          {patient?.id ? "Edit" : "New"} Patient{" "}
+          {patient?.id ? `#${patient?.id}` : "Form"}
         </h2>
       </div>
       <Form {...form}>
@@ -104,6 +117,18 @@ export default function PatientForm({ patient }: Props) {
               nameInSchema="notes"
               className="h-40"
             />
+
+            {isLoading ? (
+              <p>Loading...</p>
+            ) : (
+              isAdmin && (
+                <CheckboxWithLabel<insertPatientSchemaType>
+                  fieldTitle="Active"
+                  nameInSchema="active"
+                  message="Yes"
+                />
+              )
+            )}
 
             <div className="flex gap-2">
               <Button

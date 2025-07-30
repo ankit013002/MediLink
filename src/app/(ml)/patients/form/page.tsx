@@ -4,6 +4,20 @@ import { BackButton } from "@/components/BackButton";
 import * as Sentry from "@sentry/nextjs";
 import PatientForm from "./PatientForm";
 
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | undefined }>;
+}) {
+  const { patientId } = await searchParams;
+
+  if (!patientId) {
+    return { title: "New Patient" };
+  }
+
+  return { title: `Edit Custoemr #${patientId}` };
+}
+
 export default async function partientFormPage({
   searchParams,
 }: {
