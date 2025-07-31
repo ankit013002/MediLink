@@ -4,6 +4,9 @@ import { BackButton } from "@/components/BackButton";
 import * as Sentry from "@sentry/nextjs";
 import AppointmentForm from "./AppointmentForm";
 import { Console } from "console";
+import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { Users, init as KindeInit } from "@kinde/management-api-js";
+import { desc } from "drizzle-orm";
 
 export default async function AppointmentFormPage({
   searchParams,
@@ -23,6 +26,13 @@ export default async function AppointmentFormPage({
         </>
       );
     }
+
+    const { getPermission, getUser } = getKindeServerSession();
+    const [adminPermission, user] = await Promise.all([
+      getPermission("admin"),
+      getUser(),
+    ]);
+    const isAdmin = adminPermission?.isGranted;
 
     if (patientId) {
       const patient = await getPatient(parseInt(patientId));
@@ -47,10 +57,17 @@ export default async function AppointmentFormPage({
           </>
         );
       }
-      {
-        console.log("here and patient: ", patient);
+
+      if (isAdmin) {
+        KindeInit();
+        const { users } = await Users.getUsers();
+        const physicians = users
+          ? users.map((user) => ({ id: user.email!, description: user.email! }))
+          : [];
+        return <AppointmentForm patient={patient} physicians={physicians} />;
+      } else {
+        return <AppointmentForm patient={patient} />;
       }
-      return <AppointmentForm patient={patient} />;
     }
 
     if (appointmentId) {
@@ -68,7 +85,24 @@ export default async function AppointmentFormPage({
       }
 
       const patient = await getPatient(appointment.patientId);
-      return <AppointmentForm patient={patient} appointment={appointment} />;
+
+      if (isAdmin) {
+        KindeInit();
+        const { users } = await Users.getUsers();
+        const physicians = users
+          ? users.map((user) => ({ id: user.email!, description: user.email! }))
+          : [];
+        return (
+          <AppointmentForm
+            patient={patient}
+            physicians={physicians}
+            appointment={appointment}
+          />
+        );
+      } else {
+        const isEditable = user!.email === appointment.physician;
+        return <AppointmentForm patient={patient} appointment={appointment} isEditable={isEditable} />;
+      }
     }
   } catch (error) {
     if (error instanceof Error) {

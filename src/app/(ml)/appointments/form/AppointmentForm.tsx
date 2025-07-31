@@ -12,13 +12,27 @@ import { InputWithLabel } from "@/components/inputs/InputWithLabel";
 import { TextAreaWithLabel } from "@/components/inputs/TextAreaWithLabel";
 import { Button } from "@/components/ui/button";
 import { CheckboxWithLabel } from "@/components/inputs/CheckboxWithLabel";
+import { SelectWithLabel } from "@/components/inputs/SelectWithLabel";
+import { desc } from "drizzle-orm";
 
 type Props = {
   patient: selectPatientSchemaType;
   appointment?: insertAppointmentSchemaType;
+  physicians?: {
+    id: string;
+    description: string;
+  }[];
+  isEditable?: boolean;
 };
 
-export default function AppointmentForm({ patient, appointment }: Props) {
+export default function AppointmentForm({
+  patient,
+  appointment,
+  physicians,
+  isEditable = true,
+}: Props) {
+  const isAdmin = Array.isArray(physicians);
+
   const defaultValues: insertAppointmentSchemaType = {
     id: appointment?.id ?? "(New)",
     patientId: appointment?.patientId ?? patient.id,
@@ -55,18 +69,37 @@ export default function AppointmentForm({ patient, appointment }: Props) {
             <InputWithLabel<insertAppointmentSchemaType>
               fieldTitle="Title"
               nameInSchema="title"
-            />
-            <InputWithLabel<insertAppointmentSchemaType>
-              fieldTitle="Physician"
-              nameInSchema="physician"
-              readOnly={true}
+              disabled={!isEditable}
             />
 
-            <CheckboxWithLabel<insertAppointmentSchemaType>
-              fieldTitle="Completed"
-              nameInSchema="completed"
-              message="Yes"
-            />
+            {isAdmin ? (
+              <SelectWithLabel<insertAppointmentSchemaType>
+                fieldTitle="Physician ID"
+                nameInSchema="physician"
+                data={[
+                  {
+                    id: "new-appointment@example.com",
+                    description: "new-appointment@example.com",
+                  },
+                  ...physicians,
+                ]}
+              />
+            ) : (
+              <InputWithLabel<insertAppointmentSchemaType>
+                fieldTitle="Physician"
+                nameInSchema="physician"
+                readOnly={true}
+              />
+            )}
+
+            {appointment?.id && (
+              <CheckboxWithLabel<insertAppointmentSchemaType>
+                fieldTitle="Completed"
+                nameInSchema="completed"
+                message="Yes"
+                disabled={!isEditable}
+              />
+            )}
 
             <div className="mt-4 space-y-2">
               <h3 className="text-lg">Patient Info</h3>
@@ -90,26 +123,29 @@ export default function AppointmentForm({ patient, appointment }: Props) {
               fieldTitle="Reason for Visit"
               nameInSchema="description"
               className="h-96"
+              disabled={!isEditable}
             />
 
-            <div className="flex gap-2">
-              <Button
-                type="submit"
-                className="w-3/4"
-                variant="default"
-                title="Save"
-              >
-                Save
-              </Button>
-              <Button
-                onClick={() => form.reset(defaultValues)}
-                type="button"
-                variant="destructive"
-                title="Reset"
-              >
-                Reset
-              </Button>
-            </div>
+            {isEditable && (
+              <div className="flex gap-2">
+                <Button
+                  type="submit"
+                  className="w-3/4"
+                  variant="default"
+                  title="Save"
+                >
+                  Save
+                </Button>
+                <Button
+                  onClick={() => form.reset(defaultValues)}
+                  type="button"
+                  variant="destructive"
+                  title="Reset"
+                >
+                  Reset
+                </Button>
+              </div>
+            )}
           </div>
         </form>
       </Form>
