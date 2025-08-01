@@ -3,10 +3,32 @@ import { getAppointment } from "@/lib/queries/getAppointment";
 import { BackButton } from "@/components/BackButton";
 import * as Sentry from "@sentry/nextjs";
 import AppointmentForm from "./AppointmentForm";
-import { Console } from "console";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { Users, init as KindeInit } from "@kinde/management-api-js";
-import { desc } from "drizzle-orm";
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | undefined }>;
+}) {
+  const { patientId, appointmentId } = await searchParams;
+
+  if (!patientId && !appointmentId) {
+    return {
+      title: "Missing Appointment ID or Patient ID",
+    };
+  }
+  if (patientId) {
+    return {
+      title: `New Ticket for Customer #${patientId}`,
+    };
+  }
+  if (appointmentId) {
+    return {
+      title: `Edit Appointment #${appointmentId}`,
+    };
+  }
+}
 
 export default async function AppointmentFormPage({
   searchParams,
@@ -101,7 +123,13 @@ export default async function AppointmentFormPage({
         );
       } else {
         const isEditable = user!.email === appointment.physician;
-        return <AppointmentForm patient={patient} appointment={appointment} isEditable={isEditable} />;
+        return (
+          <AppointmentForm
+            patient={patient}
+            appointment={appointment}
+            isEditable={isEditable}
+          />
+        );
       }
     }
   } catch (error) {

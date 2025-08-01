@@ -121,7 +121,8 @@ export default function PatientForm({ patient }: Props) {
             {isLoading ? (
               <p>Loading...</p>
             ) : (
-              isAdmin && (
+              isAdmin &&
+              patient?.id && (
                 <CheckboxWithLabel<insertPatientSchemaType>
                   fieldTitle="Active"
                   nameInSchema="active"
