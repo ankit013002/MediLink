@@ -20,7 +20,7 @@ export async function generateMetadata({
   }
   if (patientId) {
     return {
-      title: `New Ticket for Customer #${patientId}`,
+      title: `New Appointment for Patient #${patientId}`,
     };
   }
   if (appointmentId) {

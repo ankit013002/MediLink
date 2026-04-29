@@ -15,7 +15,6 @@ import { TextAreaWithLabel } from "@/components/inputs/TextAreaWithLabel";
 import { SelectWithLabel } from "@/components/inputs/SelectWithLabel";
 import { StatesArray } from "@/constants/StatesArray";
 import { CheckboxWithLabel } from "@/components/inputs/CheckboxWithLabel";
-import { generateMetadata } from "./page";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 
 type Props = {

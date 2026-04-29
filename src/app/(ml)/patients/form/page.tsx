@@ -15,10 +15,10 @@ export async function generateMetadata({
     return { title: "New Patient" };
   }
 
-  return { title: `Edit Custoemr #${patientId}` };
+  return { title: `Edit Patient #${patientId}` };
 }
 
-export default async function partientFormPage({
+export default async function PatientFormPage({
   searchParams,
 }: {
   searchParams: Promise<{ [key: string]: string | undefined }>;
