@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { useFormContext } from "react-hook-form";
 
 import {
@@ -16,7 +15,7 @@ type Props<S> = {
   fieldTitle: string;
   nameInSchema: keyof S & string;
   message: string;
-  disabled: boolean;
+  disabled?: boolean;
 };
 
 export function CheckboxWithLabel<S>({
