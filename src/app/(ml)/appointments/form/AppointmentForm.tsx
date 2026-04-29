@@ -13,7 +13,6 @@ import { TextAreaWithLabel } from "@/components/inputs/TextAreaWithLabel";
 import { Button } from "@/components/ui/button";
 import { CheckboxWithLabel } from "@/components/inputs/CheckboxWithLabel";
 import { SelectWithLabel } from "@/components/inputs/SelectWithLabel";
-import { desc } from "drizzle-orm";
 
 type Props = {
   patient: selectPatientSchemaType;
@@ -57,7 +56,7 @@ export default function AppointmentForm({
       <div>
         <h2 className="text-2xl font-bold">
           {appointment?.id ? "Edit" : "New"} Appointment{" "}
-          {appointment?.id ? `#${appointment?.id}}` : "Form"}
+          {appointment?.id ? `#${appointment?.id}` : "Form"}
         </h2>
       </div>
       <Form {...form}>
@@ -118,7 +117,7 @@ export default function AppointmentForm({
             </div>
           </div>
 
-          <div className="flex flex-col gap-4 w-full max-x-xs">
+          <div className="flex flex-col gap-4 w-full max-w-xs">
             <TextAreaWithLabel<insertAppointmentSchemaType>
               fieldTitle="Reason for Visit"
               nameInSchema="description"
