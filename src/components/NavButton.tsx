@@ -1,4 +1,3 @@
-import React from "react";
 import { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -6,7 +5,7 @@ import Link from "next/link";
 type Props = {
   icon: LucideIcon;
   label: string;
-  href?: string;
+  href: string;
 };
 
 const NavButton = ({ icon: Icon, label, href }: Props) => {
@@ -19,13 +18,9 @@ const NavButton = ({ icon: Icon, label, href }: Props) => {
       className="rounded-full"
       asChild
     >
-      {href ? (
-        <Link href={href}>
-          <Icon />
-        </Link>
-      ) : (
+      <Link href={href}>
         <Icon />
-      )}
+      </Link>
     </Button>
   );
 };
