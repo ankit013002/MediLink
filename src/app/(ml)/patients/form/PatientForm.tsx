@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
+import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,21 +16,18 @@ import { TextAreaWithLabel } from "@/components/inputs/TextAreaWithLabel";
 import { SelectWithLabel } from "@/components/inputs/SelectWithLabel";
 import { StatesArray } from "@/constants/StatesArray";
 import { CheckboxWithLabel } from "@/components/inputs/CheckboxWithLabel";
-import { generateMetadata } from "./page";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
+import { savePatient } from "@/lib/actions/savePatient";
 
 type Props = {
   patient?: selectPatientSchemaType;
 };
 
 export default function PatientForm({ patient }: Props) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const { getPermission, isLoading } = useKindeBrowserClient();
   const isAdmin = !isLoading && getPermission("admin")?.isGranted;
-
-  // const permObj = getPermissions();
-  // To get different permissions that user has. Just a way to get multiple
-  // const isAuthorized =
-  //   !isLoading && permObj.permissions.some((perm) => perm === "admin" || perm === "physician");
 
   const defaultValues: insertPatientSchemaType = {
     id: patient?.id ?? 0,
@@ -49,11 +47,22 @@ export default function PatientForm({ patient }: Props) {
   const form = useForm<insertPatientSchemaType>({
     mode: "onBlur",
     resolver: zodResolver(insertPatientSchema),
-    defaultValues: defaultValues,
+    defaultValues,
   });
 
   async function submitForm(data: insertPatientSchemaType) {
-    console.log(data);
+    startTransition(async () => {
+      try {
+        const result = await savePatient(data);
+        if (result.success) {
+          router.push("/patients");
+        } else {
+          form.setError("root", { message: result.message });
+        }
+      } catch {
+        form.setError("root", { message: "Unable to save patient. Please try again." });
+      }
+    });
   }
 
   return (
@@ -61,7 +70,7 @@ export default function PatientForm({ patient }: Props) {
       <div>
         <h2 className="text-2xl font-bold">
           {patient?.id ? "Edit" : "New"} Patient{" "}
-          {patient?.id ? `#${patient?.id}` : "Form"}
+          {patient?.id ? `#${patient.id}` : "Form"}
         </h2>
       </div>
       <Form {...form}>
@@ -131,20 +140,28 @@ export default function PatientForm({ patient }: Props) {
               )
             )}
 
+            {form.formState.errors.root && (
+              <p className="text-destructive text-sm">
+                {form.formState.errors.root.message}
+              </p>
+            )}
+
             <div className="flex gap-2">
               <Button
                 type="submit"
                 className="w-3/4"
                 variant="default"
                 title="Save"
+                disabled={isPending}
               >
-                Save
+                {isPending ? "Saving..." : "Save"}
               </Button>
               <Button
                 onClick={() => form.reset(defaultValues)}
                 type="button"
                 variant="destructive"
                 title="Reset"
+                disabled={isPending}
               >
                 Reset
               </Button>
