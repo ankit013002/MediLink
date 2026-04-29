@@ -5,25 +5,44 @@ import { patients } from "@/db/schema";
 import { insertPatientSchema, type insertPatientSchemaType } from "@/zod-schemas/patient";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import * as Sentry from "@sentry/nextjs";
 
-export async function savePatient(data: insertPatientSchemaType) {
-  const parsed = insertPatientSchema.safeParse(data);
-  if (!parsed.success) {
-    return { message: `Validation error: ${parsed.error.errors[0]?.message}` };
+export type SavePatientResult =
+  | { success: true }
+  | { success: false; message: string };
+
+export async function savePatient(
+  data: insertPatientSchemaType
+): Promise<SavePatientResult> {
+  const { getUser } = getKindeServerSession();
+  const user = await getUser();
+  if (!user) {
+    return { success: false, message: "Unauthorized" };
   }
 
-  const { id, ...values } = parsed.data;
+  const parsed = insertPatientSchema.safeParse(data);
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: `Validation error: ${parsed.error.errors[0]?.message}`,
+    };
+  }
+
+  // Omit server-managed timestamp columns so callers cannot override them
+  const { id, createdAt, updatedAt, ...values } = parsed.data;
 
   try {
-    if (id === 0) {
+    if (!id || id <= 0) {
       await db.insert(patients).values(values);
     } else {
       await db.update(patients).set(values).where(eq(patients.id, id));
     }
   } catch (e) {
-    return { message: `Database error: ${e instanceof Error ? e.message : "Unknown error"}` };
+    Sentry.captureException(e);
+    return { success: false, message: "Unable to save patient. Please try again." };
   }
 
   revalidatePath("/patients");
-  return { message: "Patient saved successfully" };
+  return { success: true };
 }

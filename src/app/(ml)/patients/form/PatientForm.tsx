@@ -52,11 +52,15 @@ export default function PatientForm({ patient }: Props) {
 
   async function submitForm(data: insertPatientSchemaType) {
     startTransition(async () => {
-      const result = await savePatient(data);
-      if (result.message.includes("error") || result.message.includes("Error")) {
-        form.setError("root", { message: result.message });
-      } else {
-        router.push("/patients");
+      try {
+        const result = await savePatient(data);
+        if (result.success) {
+          router.push("/patients");
+        } else {
+          form.setError("root", { message: result.message });
+        }
+      } catch {
+        form.setError("root", { message: "Unable to save patient. Please try again." });
       }
     });
   }
