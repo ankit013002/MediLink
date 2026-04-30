@@ -4,10 +4,13 @@ import { config } from "dotenv";
 
 config({ path: ".env.local" });
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL!,
-});
+const databaseUrl = process.env.DATABASE_URL;
 
-const db = drizzle(pool);
+if (!databaseUrl || databaseUrl.trim() === "") {
+  throw new Error(
+    "DATABASE_URL is required to initialize the database connection. Set it in .env.local.",
+  );
+}
 
-export { db };
+export const pool = new Pool({ connectionString: databaseUrl });
+export const db = drizzle(pool);
