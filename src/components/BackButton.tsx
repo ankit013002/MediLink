@@ -18,7 +18,7 @@ type Props = {
     | undefined;
 } & ButtonHTMLAttributes<HTMLButtonElement>;
 
-export const BackButton = ({ title, className, variant, ...props }: Props) => {
+export const BackButton = ({ title, className, variant }: Props) => {
   const router = useRouter();
   return (
     <Button

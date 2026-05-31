@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getPatient } from "@/lib/queries/getPatient";
 import { getAppointment } from "@/lib/queries/getAppointment";
 import { BackButton } from "@/components/BackButton";
@@ -20,7 +22,7 @@ export async function generateMetadata({
   }
   if (patientId) {
     return {
-      title: `New Ticket for Customer #${patientId}`,
+      title: `New Appointment for Patient #${patientId}`,
     };
   }
   if (appointmentId) {
@@ -107,6 +109,17 @@ export default async function AppointmentFormPage({
       }
 
       const patient = await getPatient(appointment.patientId);
+
+      if (!patient) {
+        return (
+          <>
+            <h2 className="text-2xl mb-2">
+              Patient for appointment #{appointmentId} not found
+            </h2>
+            <BackButton title="Go Back" variant="default" />
+          </>
+        );
+      }
 
       if (isAdmin) {
         KindeInit();

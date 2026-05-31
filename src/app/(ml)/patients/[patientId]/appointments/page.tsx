@@ -1,53 +1,72 @@
 import React from "react";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
-import Link from "next/link";
-import {
-  getAppointmentSearchResults,
-  getAllAppointments,
-} from "@/lib/queries/getAppointments";
+import { notFound } from "next/navigation";
+import { getPatient } from "@/lib/queries/getPatient";
+import { getPatientAppointments } from "@/lib/queries/getPatientAppointments";
 import { Button } from "@/components/ui/button";
+import { BackButton } from "@/components/BackButton";
 import { DeleteAppointmentButton } from "@/components/DeleteAppointmentButton";
 
-export const metadata = {
-  title: "Appointments",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ patientId: string }>;
+}) {
+  const { patientId } = await params;
+  return { title: `Appointments for Patient #${patientId}` };
+}
 
-type Props = {
-  searchParams: Promise<{ [key: string]: string | undefined }>;
-};
+export default async function PatientAppointmentsPage({
+  params,
+}: {
+  params: Promise<{ patientId: string }>;
+}) {
+  const { patientId } = await params;
+  const id = parseInt(patientId);
 
-export default async function Appointments({ searchParams }: Props) {
-  const { searchText } = await searchParams;
+  const patient = await getPatient(id);
+  if (!patient) notFound();
 
-  const appointments = searchText
-    ? await getAppointmentSearchResults(searchText)
-    : await getAllAppointments();
+  const appts = await getPatientAppointments(id);
 
   return (
     <div className="flex flex-col gap-4 p-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Appointments</h2>
+      <div className="flex items-center gap-4">
+        <BackButton title="Back" variant="outline" />
+        <h2 className="text-2xl font-bold">
+          Appointments — {patient.firstName} {patient.lastName}
+        </h2>
       </div>
 
-      <form className="flex gap-2 max-w-sm" method="GET">
-        <input
-          type="text"
-          name="searchText"
-          defaultValue={searchText}
-          placeholder="Search appointments..."
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        />
-        <Button type="submit">Search</Button>
-        {searchText && (
-          <Button variant="outline" asChild>
-            <Link href="/appointments">Clear</Link>
-          </Button>
-        )}
-      </form>
+      <div className="flex gap-2 text-sm text-muted-foreground">
+        <span>{patient.email}</span>
+        <span>·</span>
+        <span>{patient.phone}</span>
+        <span>·</span>
+        <span>
+          {patient.city}, {patient.state}
+        </span>
+      </div>
 
-      {appointments.length === 0 ? (
-        <p className="text-muted-foreground">No appointments found.</p>
+      <div className="flex gap-2">
+        <Button asChild>
+          <Link href={`/appointments/form?patientId=${patient.id}`}>
+            New Appointment
+          </Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link href={`/patients/form?patientId=${patient.id}`}>
+            Edit Patient
+          </Link>
+        </Button>
+      </div>
+
+      {appts.length === 0 ? (
+        <p className="text-muted-foreground">
+          No appointments found for this patient.
+        </p>
       ) : (
         <div className="overflow-x-auto rounded-md border">
           <table className="w-full text-sm">
@@ -55,8 +74,6 @@ export default async function Appointments({ searchParams }: Props) {
               <tr>
                 <th className="p-3 text-left font-medium">ID</th>
                 <th className="p-3 text-left font-medium">Title</th>
-                <th className="p-3 text-left font-medium">Patient</th>
-                <th className="p-3 text-left font-medium">Phone</th>
                 <th className="p-3 text-left font-medium">Physician</th>
                 <th className="p-3 text-left font-medium">Date</th>
                 <th className="p-3 text-left font-medium">Status</th>
@@ -64,19 +81,13 @@ export default async function Appointments({ searchParams }: Props) {
               </tr>
             </thead>
             <tbody>
-              {appointments.map((appt) => (
+              {appts.map((appt) => (
                 <tr key={appt.id} className="border-t hover:bg-muted/50">
                   <td className="p-3">{appt.id}</td>
                   <td className="p-3">{appt.title}</td>
-                  <td className="p-3">
-                    {appt.lastName}, {appt.firstName}
-                  </td>
-                  <td className="p-3">{appt.phone}</td>
                   <td className="p-3">{appt.physician}</td>
                   <td className="p-3">
-                    {appt.createdAt
-                      ? new Date(appt.createdAt).toLocaleDateString()
-                      : "—"}
+                    {new Date(appt.createdAt).toLocaleDateString()}
                   </td>
                   <td className="p-3">
                     <span
@@ -95,11 +106,6 @@ export default async function Appointments({ searchParams }: Props) {
                         href={`/appointments/form?appointmentId=${appt.id}`}
                       >
                         Edit
-                      </Link>
-                    </Button>
-                    <Button asChild size="sm" variant="outline">
-                      <Link href={`/patients/form?patientId=${appt.patientId}`}>
-                        Patient
                       </Link>
                     </Button>
                     <DeleteAppointmentButton

@@ -15,8 +15,11 @@ import { TextAreaWithLabel } from "@/components/inputs/TextAreaWithLabel";
 import { SelectWithLabel } from "@/components/inputs/SelectWithLabel";
 import { StatesArray } from "@/constants/StatesArray";
 import { CheckboxWithLabel } from "@/components/inputs/CheckboxWithLabel";
-import { generateMetadata } from "./page";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
+import { savePatientAction } from "@/lib/actions/savePatientAction";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import Link from "next/link";
 
 type Props = {
   patient?: selectPatientSchemaType;
@@ -25,11 +28,7 @@ type Props = {
 export default function PatientForm({ patient }: Props) {
   const { getPermission, isLoading } = useKindeBrowserClient();
   const isAdmin = !isLoading && getPermission("admin")?.isGranted;
-
-  // const permObj = getPermissions();
-  // To get different permissions that user has. Just a way to get multiple
-  // const isAuthorized =
-  //   !isLoading && permObj.permissions.some((perm) => perm === "admin" || perm === "physician");
+  const router = useRouter();
 
   const defaultValues: insertPatientSchemaType = {
     id: patient?.id ?? 0,
@@ -49,11 +48,18 @@ export default function PatientForm({ patient }: Props) {
   const form = useForm<insertPatientSchemaType>({
     mode: "onBlur",
     resolver: zodResolver(insertPatientSchema),
-    defaultValues: defaultValues,
+    defaultValues,
   });
 
   async function submitForm(data: insertPatientSchemaType) {
-    console.log(data);
+    try {
+      const result = await savePatientAction(data);
+      toast.success(result.message);
+      router.push("/patients");
+    } catch (error) {
+      console.error(error);
+      toast.error("An error occurred while saving the patient.");
+    }
   }
 
   return (
@@ -61,7 +67,7 @@ export default function PatientForm({ patient }: Props) {
       <div>
         <h2 className="text-2xl font-bold">
           {patient?.id ? "Edit" : "New"} Patient{" "}
-          {patient?.id ? `#${patient?.id}` : "Form"}
+          {patient?.id ? `#${patient.id}` : "Form"}
         </h2>
       </div>
       <Form {...form}>
@@ -90,7 +96,6 @@ export default function PatientForm({ patient }: Props) {
               fieldTitle="City"
               nameInSchema="city"
             />
-
             <SelectWithLabel<insertPatientSchemaType>
               fieldTitle="State"
               nameInSchema="state"
@@ -111,7 +116,6 @@ export default function PatientForm({ patient }: Props) {
               fieldTitle="Phone"
               nameInSchema="phone"
             />
-
             <TextAreaWithLabel<insertPatientSchemaType>
               fieldTitle="Notes"
               nameInSchema="notes"
@@ -119,7 +123,7 @@ export default function PatientForm({ patient }: Props) {
             />
 
             {isLoading ? (
-              <p>Loading...</p>
+              <p>Loading…</p>
             ) : (
               isAdmin &&
               patient?.id && (
@@ -137,18 +141,23 @@ export default function PatientForm({ patient }: Props) {
                 className="w-3/4"
                 variant="default"
                 title="Save"
+                disabled={form.formState.isSubmitting}
               >
-                Save
+                {form.formState.isSubmitting ? "Saving…" : "Save"}
               </Button>
               <Button
                 onClick={() => form.reset(defaultValues)}
                 type="button"
                 variant="destructive"
                 title="Reset"
+                disabled={form.formState.isSubmitting}
               >
                 Reset
               </Button>
             </div>
+            <Button variant="outline" asChild>
+              <Link href="/patients">Cancel</Link>
+            </Button>
           </div>
         </form>
       </Form>

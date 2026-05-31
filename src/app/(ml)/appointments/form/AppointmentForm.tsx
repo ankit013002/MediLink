@@ -13,7 +13,10 @@ import { TextAreaWithLabel } from "@/components/inputs/TextAreaWithLabel";
 import { Button } from "@/components/ui/button";
 import { CheckboxWithLabel } from "@/components/inputs/CheckboxWithLabel";
 import { SelectWithLabel } from "@/components/inputs/SelectWithLabel";
-import { desc } from "drizzle-orm";
+import { saveAppointmentAction } from "@/lib/actions/saveAppointmentAction";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import Link from "next/link";
 
 type Props = {
   patient: selectPatientSchemaType;
@@ -32,6 +35,7 @@ export default function AppointmentForm({
   isEditable = true,
 }: Props) {
   const isAdmin = Array.isArray(physicians);
+  const router = useRouter();
 
   const defaultValues: insertAppointmentSchemaType = {
     id: appointment?.id ?? "(New)",
@@ -49,7 +53,14 @@ export default function AppointmentForm({
   });
 
   async function submitForm(data: insertAppointmentSchemaType) {
-    console.log(data);
+    try {
+      const result = await saveAppointmentAction(data);
+      toast.success(result.message);
+      router.push("/appointments");
+    } catch (error) {
+      console.error(error);
+      toast.error("An error occurred while saving the appointment.");
+    }
   }
 
   return (
@@ -57,7 +68,9 @@ export default function AppointmentForm({
       <div>
         <h2 className="text-2xl font-bold">
           {appointment?.id ? "Edit" : "New"} Appointment{" "}
-          {appointment?.id ? `#${appointment?.id}}` : "Form"}
+          {appointment?.id && appointment.id !== "(New)"
+            ? `#${appointment.id}`
+            : "Form"}
         </h2>
       </div>
       <Form {...form}>
@@ -74,7 +87,7 @@ export default function AppointmentForm({
 
             {isAdmin ? (
               <SelectWithLabel<insertAppointmentSchemaType>
-                fieldTitle="Physician ID"
+                fieldTitle="Physician"
                 nameInSchema="physician"
                 data={[
                   {
@@ -118,7 +131,7 @@ export default function AppointmentForm({
             </div>
           </div>
 
-          <div className="flex flex-col gap-4 w-full max-x-xs">
+          <div className="flex flex-col gap-4 w-full max-w-xs">
             <TextAreaWithLabel<insertAppointmentSchemaType>
               fieldTitle="Reason for Visit"
               nameInSchema="description"
@@ -127,24 +140,31 @@ export default function AppointmentForm({
             />
 
             {isEditable && (
-              <div className="flex gap-2">
-                <Button
-                  type="submit"
-                  className="w-3/4"
-                  variant="default"
-                  title="Save"
-                >
-                  Save
+              <>
+                <div className="flex gap-2">
+                  <Button
+                    type="submit"
+                    className="w-3/4"
+                    variant="default"
+                    title="Save"
+                    disabled={form.formState.isSubmitting}
+                  >
+                    {form.formState.isSubmitting ? "Saving…" : "Save"}
+                  </Button>
+                  <Button
+                    onClick={() => form.reset(defaultValues)}
+                    type="button"
+                    variant="destructive"
+                    title="Reset"
+                    disabled={form.formState.isSubmitting}
+                  >
+                    Reset
+                  </Button>
+                </div>
+                <Button variant="outline" asChild>
+                  <Link href="/appointments">Cancel</Link>
                 </Button>
-                <Button
-                  onClick={() => form.reset(defaultValues)}
-                  type="button"
-                  variant="destructive"
-                  title="Reset"
-                >
-                  Reset
-                </Button>
-              </div>
+              </>
             )}
           </div>
         </form>
