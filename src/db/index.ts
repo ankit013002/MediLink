@@ -1,13 +1,16 @@
-import { drizzle } from "drizzle-orm/neon-http";
-import { neon } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
 import { config } from "dotenv";
 
 config({ path: ".env.local" });
 
-const sql = neon(process.env.DATABASE_URL!);
+const databaseUrl = process.env.DATABASE_URL;
 
-// Logging
-// const db = drizzle(sql, {logger: true})
-const db = drizzle(sql);
+if (!databaseUrl || databaseUrl.trim() === "") {
+  throw new Error(
+    "DATABASE_URL is required to initialize the database connection. Set it in .env.local.",
+  );
+}
 
-export { db };
+export const pool = new Pool({ connectionString: databaseUrl });
+export const db = drizzle(pool);
